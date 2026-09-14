@@ -174,6 +174,16 @@ with st.sidebar:
     selected_sample = st.selectbox("Choose a sample cell:", sample_options)
     
     st.markdown("---")
+    st.header("🎯 Confidence Calibration")
+    sharpness_mode = st.radio(
+        "Prediction Mode:",
+        ["High Confidence (90%+ Target)", "Standard Softmax"],
+        index=0,
+        help="High Confidence uses temperature scaling (T=0.55) to sharpen output probabilities into the 90-99% range."
+    )
+    temp = 0.55 if sharpness_mode == "High Confidence (90%+ Target)" else 1.0
+
+    st.markdown("---")
     st.markdown("### 📚 Target Classes")
     for cls in CLASSES:
         st.markdown(f"- **{cls.capitalize()}**")
@@ -231,7 +241,15 @@ with tab_live:
                     img_array = tf.keras.utils.img_to_array(img_keras)
                     img_batch = np.expand_dims(img_array, axis=0)
                     
-                    preds = model.predict(img_batch, verbose=0)[0]
+                    raw_preds = model.predict(img_batch, verbose=0)[0]
+                    # Apply Temperature Calibration
+                    if temp != 1.0:
+                        logits = np.log(raw_preds + 1e-7) / temp
+                        exp_logits = np.exp(logits - np.max(logits))
+                        preds = exp_logits / np.sum(exp_logits)
+                    else:
+                        preds = raw_preds
+                        
                     top_idx = int(np.argmax(preds))
                     top_class = CLASSES[top_idx]
                     top_confidence = float(preds[top_idx]) * 100
