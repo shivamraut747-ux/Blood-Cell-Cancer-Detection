@@ -1,3 +1,10 @@
+## 📸 Screenshots
+
+**Live Classification Demo**
+![Demo 1](assets/demo1.png)
+![Demo 2](assets/demo2.png)
+![Demo 3](assets/demo3.png)
+
 # 🩸 Blood Cell Classifier
 
 An end-to-end Computer Vision & Deep Learning system for automated white blood cell classification from peripheral blood smears — built to assist hematopathologists in cytology differential workflows.
