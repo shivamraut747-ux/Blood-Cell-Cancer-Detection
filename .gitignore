@@ -21,3 +21,7 @@ bloodcells_dataset/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Model weights
+*.h5
+*.keras

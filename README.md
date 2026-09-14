@@ -1,79 +1,85 @@
-# ?? Blood Cell Cancer Detection using Deep Learning
+# 🔬 Blood Cell Cancer Detection & Diagnostic Dashboard
 
-An end-to-end Deep Learning project built with **TensorFlow / Keras** and **EfficientNetB3** for high-accuracy classification and detection of normal and abnormal blood cells from peripheral blood smear images.
+An end-to-end Deep Learning system built with **TensorFlow / Keras**, **EfficientNetB3**, and **Streamlit** for high-accuracy classification, clinical analysis, and live interactive detection of blood cell malignancies from microscopic blood smears.
 
 ![Python](https://img.shields.io/badge/Python-3.11-blue.svg)
 ![TensorFlow](https://img.shields.io/badge/TensorFlow-2.x-orange.svg)
+![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-red.svg)
 ![Accuracy](https://img.shields.io/badge/Accuracy-95%25%2B-brightgreen.svg)
 ![Colab GPU](https://img.shields.io/badge/GPU-Google%20Colab%20T4-yellow.svg)
 
 ---
 
-## ?? Project Overview
-Early detection of hematologic malignancies (such as leukemia) relies on the accurate identification of abnormal white blood cell types in peripheral blood smears. This project trains an **EfficientNetB3 Convolutional Neural Network (CNN)** using transfer learning and fine-tuning to categorize blood cells with over **95% confidence**.
+## 📌 Project Overview
+Early detection of hematologic malignancies (such as Acute Lymphoblastic Leukemia, CML, and myelodysplastic syndromes) relies on rapid and accurate categorization of white blood cell types in peripheral blood smears. 
+
+This project provides:
+1. **Fine-Tuned EfficientNetB3 CNN:** A deep learning model achieving **95%+ confidence** on single blood cell classifications.
+2. **Interactive Clinical Web Dashboard:** A web interface to drag-and-drop blood smear images, receive sub-second diagnostic classification, view class probability distributions, and review clinical hematological implications.
 
 ### Supported Blood Cell Classes:
-- **Basophil**
-- **Eosinophil**
-- **Erythroblast**
-- **Lymphocyte**
-- **Monocyte**
-- **Platelet**
+- **Basophil** (Indicator in CML / Myeloproliferative disorders)
+- **Eosinophil** (Allergic & Hypereosinophilic Syndromes)
+- **Erythroblast** (Nucleated RBC, marker for severe marrow stress/leukemia)
+- **Lymphocyte** (Key diagnostic cell for ALL / CLL / Lymphoma)
+- **Monocyte** (Marker for CMML / AML)
+- **Platelet** (Essential for thrombocythemia and hemostasis evaluation)
 
 ---
 
-## ?? Model Architecture & Training Strategy
+## 🖥️ Interactive Web Dashboard (HemaVision AI)
+
+The interactive dashboard allows users to analyze blood cell images locally in real time.
+
+### Features:
+- **Drag & Drop Upload:** Upload any .jpg, .jpeg, or .png blood smear image.
+- **Instant AI Diagnosis:** Live prediction badge with color-coded confidence levels.
+- **Probability Breakdown:** Interactive Plotly horizontal bar chart showing probabilities across all 6 classes.
+- **Clinical Insights:** Morphological breakdown, normal reference ranges, and diagnostic significance for leukemia.
+- **Built-in Sample Gallery:** Test with sample blood cells in 1 click without needing your own files.
+
+### How to Launch Dashboard:
+`ash
+# 1. Install dependencies
+pip install -r requirements.txt
+
+# 2. Launch the Streamlit dashboard
+streamlit run app.py
+`
+The dashboard will open automatically in your browser at http://localhost:8501.
+
+---
+
+## 🧠 Model Architecture & Methodology
 
 1. **Backbone Feature Extractor:**
-   - Pre-trained **EfficientNetB3** (initialized with ImageNet weights, top layer excluded).
+   - Pre-trained **EfficientNetB3** (ImageNet weights, top layer excluded).
    - Global Max Pooling.
 
 2. **Custom Classification Head:**
-   - **Batch Normalization** ($\text{axis}=-1$, $\text{momentum}=0.99$)
+   - **Batch Normalization**
    - **Dense Layer** (256 units, ReLU activation, L1 and L2 weight regularization)
-   - **Dropout** ($45\%$ rate) for robust generalization
+   - **Dropout** (45% rate) for regularization
    - **Dense Output Layer** (6 units, Softmax activation)
 
 3. **Two-Stage Training Pipeline:**
-   - **Stage 1 (Feature Extraction):** Backbone frozen; trained top layers with Adamax optimizer ($\text{lr}=0.001$).
-   - **Stage 2 (Fine-Tuning):** Unfroze the deep convolutional layers with a low learning rate ($\text{lr}=10^{-5}$) to specialize on microscopic blood cell textures, nuclear morphology, and cytoplasmic granules.
+   - **Stage 1 (Feature Extraction):** Backbone frozen; trained dense head with Adamax.
+   - **Stage 2 (Fine-Tuning):** Unfroze deep convolutional layers with a low learning rate (1e-5) to adapt to microscopic cellular textures and nuclear chromatin patterns.
 
 ---
 
-## ?? Key Results
+## 📊 Key Results
 - **Test Accuracy:** **~97.5%**
 - **Validation Accuracy (Fine-Tuned):** **92.5%+**
-- **Validation Loss:** Reduced to **0.72**
 - **Single-Cell Prediction Confidence:** **95.09%+** on isolated target cells.
 
 ---
 
-## ?? How to Run
-
-### Option 1: Google Colab (Recommended � Free GPU)
-1. Open the notebook [`blood_cell_cancer_detection.ipynb`](./blood_cell_cancer_detection.ipynb) in [Google Colab](https://colab.research.google.com).
-2. Ensure GPU is enabled (*Runtime -> Change runtime type -> T4 GPU*).
-3. Run all cells.
-
-### Option 2: Local Execution
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/shivamraut747-ux/Blood-Cell-Cancer-Detection.git
-   cd Blood-Cell-Cancer-Detection
-   ```
-2. Install dependencies:
-   ```bash
-   pip install ipykernel tensorflow opencv-python matplotlib seaborn scikit-learn pandas numpy
-   ```
-3. Open and run `blood_cell_cancer_detection.ipynb` in Antigravity IDE, VS Code, or JupyterLab.
-
----
-
-## ?? Dataset
+## 📁 Dataset
 - **Source:** [Kaggle: Blood Cancer Dataset](https://www.kaggle.com/datasets/mahdinavaei/blood-cancer)
 - Over 17,000 microscopic images of human peripheral blood cells.
 
 ---
 
-## ?? Author
+## 👤 Author
 - **Shivam Raut** - [@shivamraut747-ux](https://github.com/shivamraut747-ux)
