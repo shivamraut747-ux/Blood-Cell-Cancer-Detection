@@ -67,28 +67,7 @@ st.markdown("""
         margin-top: 0.35rem;
         letter-spacing: -0.01em;
     }
-    .app-tag {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 0.72rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.07em;
-        color: #0369a1;
-        background: #f0f9ff;
-        border: 1px solid #bae6fd;
-        padding: 5px 12px;
-        border-radius: 20px;
-        font-family: 'JetBrains Mono', monospace;
-    }
-    .status-pulse {
-        width: 7px;
-        height: 7px;
-        background-color: #0284c7;
-        border-radius: 50%;
-        display: inline-block;
-    }
+
 
 
     /* Table Specification */
@@ -230,7 +209,6 @@ st.markdown("""
         <div class="app-title">HemaVision Laboratory Analyzer</div>
         <div class="app-subtitle">Peripheral Blood Smear Morphology &amp; Cytological Classification System</div>
     </div>
-    <div class="app-tag"><span class="status-pulse"></span> System Online &bull; v2.4.1</div>
 </div>
 """, unsafe_allow_html=True)
 
