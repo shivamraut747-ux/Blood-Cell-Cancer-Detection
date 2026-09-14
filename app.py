@@ -32,7 +32,7 @@ st.markdown("""
 
     /* Main Container with cohesive width and generous top clearance */
     .block-container {
-        padding-top: 2.2rem;
+        padding-top: 2.6rem;
         padding-bottom: 2.5rem;
         max-width: 1040px;
         margin: 0 auto;
@@ -43,39 +43,51 @@ st.markdown("""
         border: 1px solid #e2e8f0;
     }
 
-    /* Header Bar */
+    /* Refined Clinical Header */
     .app-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding-bottom: 0.85rem;
+        padding-bottom: 1.15rem;
         border-bottom: 1px solid #e2e8f0;
-        margin-bottom: 1rem;
+        margin-bottom: 1.35rem;
     }
     .app-title {
-        font-size: 1.4rem;
+        font-size: 1.75rem;
         font-weight: 700;
-        letter-spacing: -0.025em;
+        letter-spacing: -0.03em;
         color: #0f172a;
         margin: 0;
-        line-height: 1.25;
+        line-height: 1.15;
     }
     .app-subtitle {
-        font-size: 0.82rem;
+        font-size: 0.9rem;
+        font-weight: 400;
         color: #64748b;
-        margin-top: 0.15rem;
+        margin-top: 0.35rem;
+        letter-spacing: -0.01em;
     }
     .app-tag {
-        font-size: 0.7rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.72rem;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.06em;
+        letter-spacing: 0.07em;
         color: #0369a1;
         background: #f0f9ff;
         border: 1px solid #bae6fd;
-        padding: 4px 10px;
-        border-radius: 4px;
+        padding: 5px 12px;
+        border-radius: 20px;
         font-family: 'JetBrains Mono', monospace;
+    }
+    .status-pulse {
+        width: 7px;
+        height: 7px;
+        background-color: #0284c7;
+        border-radius: 50%;
+        display: inline-block;
     }
 
 
@@ -216,9 +228,9 @@ st.markdown("""
 <div class="app-header">
     <div>
         <div class="app-title">HemaVision Laboratory Analyzer</div>
-        <div class="app-subtitle">Peripheral Blood Smear Morphology & Cytological Classification System</div>
+        <div class="app-subtitle">Peripheral Blood Smear Morphology &amp; Cytological Classification System</div>
     </div>
-    <div class="app-tag">System Online &bull; v2.4.1</div>
+    <div class="app-tag"><span class="status-pulse"></span> System Online &bull; v2.4.1</div>
 </div>
 """, unsafe_allow_html=True)
 
