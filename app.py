@@ -73,33 +73,6 @@ st.markdown("""
         font-family: 'JetBrains Mono', monospace;
     }
 
-    /* Compact Metric Grid */
-    .metric-row {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 0.75rem;
-        margin-bottom: 1.15rem;
-    }
-    .metric-item {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 6px;
-        padding: 0.65rem 0.85rem;
-    }
-    .metric-val {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: #0f172a;
-        font-family: 'JetBrains Mono', monospace;
-    }
-    .metric-label {
-        font-size: 0.68rem;
-        font-weight: 600;
-        color: #64748b;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-top: 0.15rem;
-    }
 
     /* Table Specification */
     .spec-table {
@@ -244,27 +217,6 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Compact Performance Indicators (Colab Benchmark)
-st.markdown("""
-<div class="metric-row">
-    <div class="metric-item">
-        <div class="metric-val">97.50%</div>
-        <div class="metric-label">Test Set Accuracy</div>
-    </div>
-    <div class="metric-item">
-        <div class="metric-val">97.92%</div>
-        <div class="metric-label">Training Accuracy</div>
-    </div>
-    <div class="metric-item">
-        <div class="metric-val">96.67%</div>
-        <div class="metric-label">Validation Accuracy</div>
-    </div>
-    <div class="metric-item">
-        <div class="metric-val">0.648</div>
-        <div class="metric-label">Cross-Entropy Loss</div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
 
 # Main Navigation Tabs
 tab_live, tab_history, tab_metrics, tab_dataset = st.tabs([
