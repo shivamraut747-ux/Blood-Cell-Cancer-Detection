@@ -25,3 +25,12 @@ Thumbs.db
 # Model weights
 *.h5
 *.keras
+
+# IDE and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log

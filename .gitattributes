@@ -1,0 +1,4 @@
+﻿# GitHub Linguist configuration
+*.ipynb linguist-detectable=false
+*.ipynb linguist-documentation=true
+
