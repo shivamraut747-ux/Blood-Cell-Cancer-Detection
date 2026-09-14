@@ -32,7 +32,7 @@ st.markdown("""
 
     /* Main Container with cohesive width and generous top clearance */
     .block-container {
-        padding-top: 2.6rem;
+        padding-top: 2.2rem;
         padding-bottom: 2.5rem;
         max-width: 1040px;
         margin: 0 auto;
@@ -43,44 +43,44 @@ st.markdown("""
         border: 1px solid #e2e8f0;
     }
 
+    /* Home Button in Very Left Corner */
+    div[data-testid="stButton"] > button {
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        border: 1px solid #e2e8f0;
+        background-color: #f8fafc;
+        color: #0f172a;
+        padding: 0.4rem 0.85rem;
+        transition: all 0.15s ease;
+    }
+    div[data-testid="stButton"] > button:hover {
+        border-color: #cbd5e1;
+        background-color: #f1f5f9;
+        color: #2563eb;
+    }
+
     /* Centered Clinical Header */
-    .app-header {
+    .app-header-center {
         text-align: center;
-        padding-bottom: 1.15rem;
-        border-bottom: 1px solid #e2e8f0;
-        margin-bottom: 1.35rem;
     }
     .app-title {
-        font-size: 1.8rem;
+        font-size: 1.75rem;
         font-weight: 700;
         letter-spacing: -0.03em;
         color: #0f172a;
         margin: 0;
         line-height: 1.2;
         text-align: center;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-    }
-    .home-icon {
-        width: 1.35rem;
-        height: 1.35rem;
-        stroke: #2563eb;
-        stroke-width: 2.2;
-        vertical-align: middle;
-        flex-shrink: 0;
     }
     .app-subtitle {
-        font-size: 0.92rem;
+        font-size: 0.9rem;
         font-weight: 400;
         color: #64748b;
-        margin-top: 0.35rem;
+        margin-top: 0.25rem;
         letter-spacing: -0.01em;
         text-align: center;
     }
-
-
 
     /* Table Specification */
     .spec-table {
@@ -191,8 +191,14 @@ selected_model_name = 'Bloods.h5' if os.path.exists('Bloods.h5') else None
 model = load_model_by_name(selected_model_name) if selected_model_name else None
 temp = 0.55  # Calibrated high-confidence temperature
 
-# Specimen Repository Discovery (Prioritize LY_3945.jpg as default)
-sample_options = []
+# State Management for Home Reset
+if "uploader_key" not in st.session_state:
+    st.session_state["uploader_key"] = 0
+if "sample_selection" not in st.session_state:
+    st.session_state["sample_selection"] = "-- None (Upload your own) --"
+
+# Specimen Repository Discovery
+sample_options = ["-- None (Upload your own) --"]
 sample_paths = {}
 
 ly_target = r"X:\archive\bloodcells_dataset\lymphocyte\LY_3945.jpg"
@@ -214,20 +220,27 @@ if os.path.exists(dataset_dir):
                     sample_options.append(label)
                     sample_paths[label] = os.path.join(folder, chosen)
 
-# Header Bar
-st.markdown("""
-<div class="app-header">
-    <div class="app-title">
-        <svg class="home-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-            <polyline points="9 22 9 12 15 12 15 22"></polyline>
-        </svg>
-        <span>HemaVision Laboratory Analyzer</span>
-    </div>
-    <div class="app-subtitle">Peripheral Blood Smear Morphology &amp; Cytological Classification System</div>
-</div>
-""", unsafe_allow_html=True)
+# Header Section: Home Page Button in Very Left Corner & Centered Title
+col_top_left, col_top_center, col_top_right = st.columns([0.15, 0.7, 0.15], vertical_alignment="center")
 
+with col_top_left:
+    if st.button("Home", icon=":material/home:", help="Return to starting page"):
+        st.session_state["uploader_key"] += 1
+        st.session_state["sample_selection"] = "-- None (Upload your own) --"
+        st.rerun()
+
+with col_top_center:
+    st.markdown("""
+    <div class="app-header-center">
+        <div class="app-title">HemaVision Laboratory Analyzer</div>
+        <div class="app-subtitle">Peripheral Blood Smear Morphology &amp; Cytological Classification System</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col_top_right:
+    st.empty()
+
+st.markdown("<hr style='margin-top: 0.6rem; margin-bottom: 1.25rem; border: none; border-bottom: 1px solid #e2e8f0;'/>", unsafe_allow_html=True)
 
 # Main Navigation Tabs
 tab_live, tab_history, tab_metrics, tab_dataset = st.tabs([
@@ -246,14 +259,19 @@ with tab_live:
         uploaded_file = st.file_uploader(
             "Upload microscopic smear image (.jpg, .png):",
             type=["jpg", "jpeg", "png"],
+            key=f"uploader_{st.session_state['uploader_key']}",
             help="High-resolution peripheral blood smear image (100x oil immersion objective)"
         )
     with col_input2:
+        cur_sample = st.session_state.get("sample_selection", "-- None (Upload your own) --")
+        cur_idx = sample_options.index(cur_sample) if cur_sample in sample_options else 0
         selected_sample = st.selectbox(
             "Or select reference specimen:",
             sample_options,
-            index=0 if sample_options else None
+            index=cur_idx,
+            key=f"sample_select_{st.session_state['uploader_key']}"
         )
+        st.session_state["sample_selection"] = selected_sample
     with col_input3:
         roi_mode = st.selectbox(
             "Inspection Protocol:",
@@ -274,7 +292,7 @@ with tab_live:
     if uploaded_file is not None:
         image_to_process = Image.open(uploaded_file).convert("RGB")
         image_source_name = uploaded_file.name
-    elif selected_sample and selected_sample in sample_paths:
+    elif selected_sample != "-- None (Upload your own) --" and selected_sample in sample_paths:
         path = sample_paths[selected_sample]
         image_to_process = Image.open(path).convert("RGB")
         image_source_name = os.path.basename(path)
@@ -320,7 +338,7 @@ with tab_live:
                     else:
                         best_scan_idx = int(np.argmax([np.max(p) for p in scan_preds]))
                         
-                    best_scan_name, active_cell_img = scan_candidates[best_scan_idx]
+                    best_scan_name, _ = scan_candidates[best_scan_idx]
                     raw_preds = scan_preds[best_scan_idx]
                     detected_auto_mode = best_scan_name
                 else:
