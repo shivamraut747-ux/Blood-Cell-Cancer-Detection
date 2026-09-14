@@ -135,21 +135,21 @@ def load_trained_model():
 model, model_filename = load_trained_model()
 
 # Header
-st.markdown('<div class="main-title">?? HemaVision AI - Blood Cell Cancer Detection</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-title">🔬 HemaVision AI - Blood Cell Cancer Detection</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-title">Clinical-grade peripheral blood smear analysis powered by Fine-Tuned EfficientNetB3 Convolutional Neural Networks</div>', unsafe_allow_html=True)
 
 # Sidebar
 with st.sidebar:
-    st.header("?? System Status")
+    st.header("⚙️ System Status")
     if model is not None:
-        st.success(f"? Model Loaded: **{model_filename}**")
+        st.success(f"✅ Model Loaded: **{model_filename}**")
         st.caption("Architecture: **EfficientNetB3 + Dense Regularized Head**")
     else:
-        st.error("?? Model file not found.")
+        st.error("⚠️ Model file not found.")
         st.info("Place `Bloods_High_Confidence.h5` or `Bloods.h5` into your project directory.")
 
     st.markdown("---")
-    st.header("?? Sample Image Gallery")
+    st.header("🧪 Sample Image Gallery")
     st.caption("Quickly test with sample cells from the local dataset:")
     
     # Check for local dataset folder
@@ -172,7 +172,7 @@ with st.sidebar:
     selected_sample = st.selectbox("Choose a sample cell:", sample_options)
     
     st.markdown("---")
-    st.markdown("### ?? Reference Classes")
+    st.markdown("### 📚 Reference Classes")
     for cls in CLASSES:
         st.markdown(f"- **{cls.capitalize()}**")
 
@@ -183,7 +183,7 @@ image_to_process = None
 image_source_name = ""
 
 with col_left:
-    st.subheader("?? Microscopic Blood Smear Input")
+    st.subheader("📷 Microscopic Blood Smear Input")
     
     uploaded_file = st.file_uploader(
         "Drag & drop a peripheral blood cell image (.jpg, .png, .jpeg)",
@@ -201,12 +201,12 @@ with col_left:
         st.info(f"Loaded sample: **{image_source_name}**")
         
     if image_to_process is not None:
-        st.image(image_to_process, caption=f"Analyzed Smear Field: {image_source_name}", use_column_width=True)
+        st.image(image_to_process, caption=f"Analyzed Smear Field: {image_source_name}", use_container_width=True)
     else:
-        st.info("?? Upload an image or select a sample from the left sidebar to start diagnostic analysis.")
+        st.info("👆 Upload an image or select a sample from the left sidebar to start diagnostic analysis.")
 
 with col_right:
-    st.subheader("?? Diagnostic AI Prediction")
+    st.subheader("📊 Diagnostic AI Prediction")
     
     if image_to_process is not None:
         if model is None:
@@ -267,7 +267,7 @@ with col_right:
 # Bottom Section: Detailed Clinical Analysis
 if image_to_process is not None and model is not None:
     st.markdown("---")
-    st.subheader(f"?? Clinical Hematology Insights: {top_class.capitalize()}")
+    st.subheader(f"📋 Clinical Hematology Insights: {top_class.capitalize()}")
     
     info = CLINICAL_INFO.get(top_class, {})
     
@@ -279,8 +279,8 @@ if image_to_process is not None and model is not None:
     with c3:
         st.markdown(f"**Clinical Status:**<br>{info.get('risk_level', 'N/A')}", unsafe_allow_html=True)
         
-    st.markdown(f"**?? Morphological Characteristics:** {info.get('morphology', 'N/A')}")
-    st.markdown(f"**?? Diagnostic & Cancer Relevance:** {info.get('clinical_relevance', 'N/A')}")
+    st.markdown(f"**🔬 Morphological Characteristics:** {info.get('morphology', 'N/A')}")
+    st.markdown(f"**🩺 Diagnostic & Cancer Relevance:** {info.get('clinical_relevance', 'N/A')}")
 
 # Footer
 st.markdown("---")
@@ -289,4 +289,5 @@ st.markdown(
     "HemaVision AI  Developed by Shivam Raut  Built with TensorFlow, EfficientNetB3 & Streamlit  For Clinical Research & Education"
     "</div>",
     unsafe_allow_html=True
-)
+)
+
