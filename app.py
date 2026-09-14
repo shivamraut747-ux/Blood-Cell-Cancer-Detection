@@ -353,7 +353,6 @@ with tab_live:
                 <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; opacity: 0.95;">Morphological Classification</div>
                 <div style="font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; margin: 2px 0;">{top_class.upper()}</div>
                 <div style="font-size: 1.1rem; font-weight: 600;">Confidence: {top_confidence:.2f}%</div>
-                <div style="font-size: 0.76rem; opacity: 0.9; margin-top: 6px; font-family: 'JetBrains Mono', monospace;">Protocol: {detected_auto_mode} &bull; Model: {selected_model_name}</div>
             </div>
             """, unsafe_allow_html=True)
             
