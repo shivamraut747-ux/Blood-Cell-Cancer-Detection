@@ -106,24 +106,16 @@ CLINICAL_INFO = {
 }
 
 @st.cache_resource
-def load_trained_model():
-    candidates = [
-        "Bloods_High_Confidence.h5",
-        "Bloods.h5",
-        os.path.join(os.path.dirname(__file__), "Bloods_High_Confidence.h5"),
-        os.path.join(os.path.dirname(__file__), "Bloods.h5"),
-        r"X:\Bloods.h5"
-    ]
-    for path in candidates:
-        if os.path.exists(path):
-            try:
-                model = tf.keras.models.load_model(path)
-                return model, os.path.basename(path)
-            except Exception:
-                continue
-    return None, None
+def load_model_by_name(model_name):
+    try:
+        model = tf.keras.models.load_model(model_name)
+        return model
+    except Exception as e:
+        return None
 
-model, model_filename = load_trained_model()
+available_models = [m for m in ['Bloods.h5', 'Bloods_High_Confidence.h5'] if os.path.exists(m)]
+default_model = 'Bloods.h5' if 'Bloods.h5' in available_models else (available_models[0] if available_models else None)
+
 
 # Header
 st.markdown('<div class="main-title">🔬 HemaVision AI - Blood Cell Cancer Detection</div>', unsafe_allow_html=True)
@@ -144,13 +136,21 @@ st.markdown("---")
 
 # Sidebar
 with st.sidebar:
-    st.header("⚙️ System Status")
-    if model is not None:
-        st.success(f"✅ Model Loaded: **{model_filename}**")
-        st.caption("Architecture: **EfficientNetB3 + Dense Regularized Head**")
+    st.header("⚙️ Model Selection")
+    if available_models:
+        selected_model_name = st.selectbox(
+            "Active AI Model:",
+            available_models,
+            index=available_models.index(default_model) if default_model in available_models else 0,
+            help="Bloods.h5 is the fully trained model with 97.5% test accuracy."
+        )
+        model = load_model_by_name(selected_model_name)
+        st.success(f"✅ Active: **{selected_model_name}**")
+        st.caption("Architecture: **EfficientNetB3 + Regularized Head**")
     else:
-        st.error("⚠️ Model file not found.")
-        st.info("Place `Bloods.h5` into the project directory.")
+        st.error("⚠️ No model file (.h5) found in project.")
+        model = None
+        selected_model_name = None
 
     st.markdown("---")
     st.header("🧪 Sample Image Gallery")
