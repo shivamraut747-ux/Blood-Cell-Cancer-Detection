@@ -10,7 +10,7 @@ import tensorflow as tf
 
 # Configure Streamlit Page
 st.set_page_config(
-    page_title="HemaVision - Peripheral Blood Smear Analysis",
+    page_title="Blood Cell Classifier",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -232,7 +232,7 @@ with col_top_left:
 with col_top_center:
     st.markdown("""
     <div class="app-header-center">
-        <div class="app-title">HemaVision Laboratory Analyzer</div>
+        <div class="app-title">Blood Cell Classifier</div>
         <div class="app-subtitle">Peripheral Blood Smear Morphology &amp; Cytological Classification System</div>
     </div>
     """, unsafe_allow_html=True)
@@ -512,7 +512,7 @@ with tab_dataset:
 st.markdown("---")
 st.markdown(
     "<div style='text-align: center; color: #94a3b8; font-size: 0.78rem; font-family: Inter, sans-serif;'>"
-    "HemaVision Laboratory Analyzer &bull; Peripheral Blood Smear Morphology System &bull; Research & Educational Protocol"
+    "Blood Cell Classifier &bull; Peripheral Blood Smear Morphology System &bull; Research & Educational Protocol"
     "</div>",
     unsafe_allow_html=True
 )

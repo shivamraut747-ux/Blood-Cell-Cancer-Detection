@@ -1,4 +1,4 @@
-# 🔬 Blood Cell Cancer Detection & Diagnostic Dashboard
+# 🔬 Blood Cell Classifier
 
 An end-to-end Deep Learning system built with **TensorFlow / Keras**, **EfficientNetB3**, and **Streamlit** for high-accuracy classification, clinical analysis, and live interactive detection of blood cell malignancies from microscopic blood smears.
 
