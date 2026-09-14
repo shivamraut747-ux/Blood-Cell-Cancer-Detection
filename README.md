@@ -81,8 +81,8 @@ This is a research and educational tool for automated blood cell-type classifica
 ## 🚀 Run Locally
 
 ```bash
-git clone https://github.com/yourusername/blood-cell-classifier
-cd blood-cell-classifier
+git clone https://github.com/shivamraut747-ux/Blood-Cell-Classifier.git
+cd Blood-Cell-Classifier
 pip install -r requirements.txt
 streamlit run app.py
 ```
