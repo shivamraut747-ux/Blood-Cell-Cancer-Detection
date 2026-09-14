@@ -4,8 +4,10 @@ An end-to-end Computer Vision & Deep Learning system for automated white blood c
 
 Blood cancers such as Acute Lymphoblastic Leukemia (ALL), Chronic Lymphocytic Leukemia (CLL), CML, and AML are diagnosed by identifying abnormal leukocyte lineages and immature precursor cells under high-magnification microscopy. This project automates that cell-identification workflow using a fine-tuned EfficientNetB3 model and an interactive clinical web app — flagging cell-type patterns associated with these conditions to support (not replace) pathologist review.
 
-**Live Classification Demo**
+
+📸 Live Classification Demo
 ![Demo 1](assets/demo1.png)
+
 
 ## 🧬 Target Classes & Clinical Relevance
 
