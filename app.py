@@ -43,29 +43,29 @@ st.markdown("""
         border: 1px solid #e2e8f0;
     }
 
-    /* Refined Clinical Header */
+    /* Centered Clinical Header */
     .app-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+        text-align: center;
         padding-bottom: 1.15rem;
         border-bottom: 1px solid #e2e8f0;
         margin-bottom: 1.35rem;
     }
     .app-title {
-        font-size: 1.75rem;
+        font-size: 1.8rem;
         font-weight: 700;
         letter-spacing: -0.03em;
         color: #0f172a;
         margin: 0;
-        line-height: 1.15;
+        line-height: 1.2;
+        text-align: center;
     }
     .app-subtitle {
-        font-size: 0.9rem;
+        font-size: 0.92rem;
         font-weight: 400;
         color: #64748b;
         margin-top: 0.35rem;
         letter-spacing: -0.01em;
+        text-align: center;
     }
 
 
@@ -205,10 +205,8 @@ if os.path.exists(dataset_dir):
 # Header Bar
 st.markdown("""
 <div class="app-header">
-    <div>
-        <div class="app-title">HemaVision Laboratory Analyzer</div>
-        <div class="app-subtitle">Peripheral Blood Smear Morphology &amp; Cytological Classification System</div>
-    </div>
+    <div class="app-title">HemaVision Laboratory Analyzer</div>
+    <div class="app-subtitle">Peripheral Blood Smear Morphology &amp; Cytological Classification System</div>
 </div>
 """, unsafe_allow_html=True)
 
