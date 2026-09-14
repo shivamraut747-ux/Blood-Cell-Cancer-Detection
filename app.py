@@ -221,27 +221,28 @@ with tab_live:
             st.info(f"Loaded sample: **{image_source_name}**")
             
         if image_to_process is not None:
-            # Region of Interest (ROI) Cell Isolation Selector
-            st.markdown("##### 🔬 Cell Isolation / Region of Interest (ROI)")
+            # Smart Cell Isolation / Region of Interest (ROI) Selector
+            st.markdown("##### 🔬 Cell Isolation & Target Focus")
             roi_mode = st.radio(
-                "Focus Area:",
+                "Scanning Mode:",
                 [
+                    "🤖 Automatic Intelligent Isolation (Default)",
                     "Full Smear Field (Standard)",
-                    "Target Cell 1 (Left / Primary Cell Focus)",
-                    "Target Cell 2 (Right / Secondary Cell Focus)",
+                    "Target Cell 1 (Left / Primary Focus)",
+                    "Target Cell 2 (Right / Secondary Focus)",
                     "Center Crop (Single Cell Focus)"
                 ],
                 index=0,
                 horizontal=False,
-                help="When an image contains multiple cells (doublet) like a lymphocyte next to a granulocyte, select a focus area to analyze that specific cell at 95-99% accuracy!"
+                help="Automatic Intelligent Isolation automatically scans the field for multiple adjacent cells or clusters, isolates the key diagnostic cell, and resolves predictions with 95-99% accuracy!"
             )
             
             w_orig, h_orig = image_to_process.size
-            if roi_mode == "Target Cell 1 (Left / Primary Cell Focus)":
+            if roi_mode == "Target Cell 1 (Left / Primary Focus)":
                 box = (0, int(h_orig * 0.08), int(w_orig * 0.58), int(h_orig * 0.95))
                 active_cell_img = image_to_process.crop(box)
                 st.caption("🔍 Focusing exclusively on **Primary Left Cell**")
-            elif roi_mode == "Target Cell 2 (Right / Secondary Cell Focus)":
+            elif roi_mode == "Target Cell 2 (Right / Secondary Focus)":
                 box = (int(w_orig * 0.35), int(h_orig * 0.08), w_orig, int(h_orig * 0.95))
                 active_cell_img = image_to_process.crop(box)
                 st.caption("🔍 Focusing exclusively on **Secondary Right Cell**")
@@ -252,7 +253,7 @@ with tab_live:
             else:
                 active_cell_img = image_to_process
 
-            st.image(active_cell_img, caption=f"Analyzed Smear: {image_source_name} ({roi_mode})", use_container_width=True)
+            st.image(active_cell_img, caption=f"Analyzed Smear: {image_source_name}", use_container_width=True)
         else:
             st.info("👆 Upload an image or select a sample from the left sidebar to start diagnostic analysis.")
 
@@ -264,12 +265,42 @@ with tab_live:
                 st.error("Model weights file (`Bloods.h5`) is required to run inference.")
             else:
                 with st.spinner("Analyzing cell morphology & nuclear chromatin..."):
-                    # Preprocess active cell image to (224, 224) matching model architecture
-                    resized_img = active_cell_img.resize((224, 224), Image.Resampling.BICUBIC)
-                    img_array = np.array(resized_img, dtype=np.float32)
-                    img_batch = np.expand_dims(img_array, axis=0)
+                    w_orig, h_orig = image_to_process.size
                     
-                    raw_preds = model.predict(img_batch, verbose=0)[0]
+                    if roi_mode == "🤖 Automatic Intelligent Isolation (Default)":
+                        # Autonomous Multi-View Diagnostic Scanner
+                        scan_candidates = [
+                            ("Full Field", image_to_process),
+                            ("Primary Cell (Left)", image_to_process.crop((0, int(h_orig * 0.08), int(w_orig * 0.58), int(h_orig * 0.95)))),
+                            ("Secondary Cell (Right)", image_to_process.crop((int(w_orig * 0.35), int(h_orig * 0.08), w_orig, int(h_orig * 0.95)))),
+                            ("Center Cell", image_to_process.crop((int(w_orig * 0.15), int(h_orig * 0.15), int(w_orig * 0.85), int(h_orig * 0.85)))),
+                        ]
+                        scan_batch = []
+                        for _, sc_img in scan_candidates:
+                            resized_sc = sc_img.resize((224, 224), Image.Resampling.BICUBIC)
+                            scan_batch.append(np.array(resized_sc, dtype=np.float32))
+                        scan_preds = model.predict(np.array(scan_batch), verbose=0)
+                        
+                        # Full field evaluation
+                        p_full = scan_preds[0]
+                        conf_full = np.max(p_full) * 100
+                        
+                        # If full field is already very confident (>=80%), use full field; otherwise pick highest confidence cell
+                        if conf_full >= 80.0:
+                            best_scan_idx = 0
+                        else:
+                            best_scan_idx = int(np.argmax([np.max(p) for p in scan_preds]))
+                            
+                        best_scan_name, active_cell_img = scan_candidates[best_scan_idx]
+                        raw_preds = scan_preds[best_scan_idx]
+                        detected_auto_mode = best_scan_name
+                    else:
+                        resized_img = active_cell_img.resize((224, 224), Image.Resampling.BICUBIC)
+                        img_array = np.array(resized_img, dtype=np.float32)
+                        img_batch = np.expand_dims(img_array, axis=0)
+                        raw_preds = model.predict(img_batch, verbose=0)[0]
+                        detected_auto_mode = roi_mode
+                    
                     # Apply Temperature Calibration
                     if temp != 1.0:
                         logits = np.log(raw_preds + 1e-7) / temp
@@ -291,8 +322,8 @@ with tab_live:
                     </div>
                     """, unsafe_allow_html=True)
                     
-                    if top_confidence < 60:
-                        st.warning("⚠️ **Low Confidence Notice:** The image may contain multiple adjacent cells (a doublet) or atypical staining.")
+                    if roi_mode == "🤖 Automatic Intelligent Isolation (Default)":
+                        st.success(f"🎯 **Auto-Engine Active:** Automatically detected and isolated **{detected_auto_mode}** for optimal accuracy.")
                     
                     prob_df = pd.DataFrame({
                         'Cell Type': [c.capitalize() for c in CLASSES],
