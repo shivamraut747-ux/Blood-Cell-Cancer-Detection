@@ -30,10 +30,18 @@ st.markdown("""
         color: #0f172a;
     }
 
+    /* Clean transparent Streamlit header */
+    header[data-testid="stHeader"] {
+        background: transparent !important;
+        height: 2.5rem !important;
+    }
+
     /* Main Container with cohesive width and generous top clearance */
     .block-container {
-        padding-top: 2.2rem;
-        padding-bottom: 2.5rem;
+        padding-top: 4.5rem !important;
+        padding-bottom: 2.5rem !important;
+        padding-left: 1.5rem !important;
+        padding-right: 1.5rem !important;
         max-width: 1040px;
         margin: 0 auto;
     }
@@ -63,23 +71,27 @@ st.markdown("""
     /* Centered Clinical Header */
     .app-header-center {
         text-align: center;
+        padding: 0.25rem 0;
     }
     .app-title {
-        font-size: 1.75rem;
+        font-size: 1.85rem;
         font-weight: 700;
-        letter-spacing: -0.03em;
+        letter-spacing: -0.02em;
         color: #0f172a;
         margin: 0;
-        line-height: 1.2;
+        padding-top: 0.35rem;
+        padding-bottom: 0.25rem;
+        line-height: 1.35;
         text-align: center;
     }
     .app-subtitle {
-        font-size: 0.9rem;
+        font-size: 0.88rem;
         font-weight: 400;
         color: #64748b;
         margin-top: 0.25rem;
         letter-spacing: -0.01em;
         text-align: center;
+        line-height: 1.3;
     }
 
     /* Table Specification */
@@ -111,8 +123,8 @@ st.markdown("""
         margin-bottom: 1rem;
     }
     .stTabs [data-baseweb="tab"] {
-        padding-left: 0;
-        padding-right: 0;
+        padding-left: 0.35rem;
+        padding-right: 0.35rem;
         padding-bottom: 0.65rem;
         font-size: 0.875rem;
         font-weight: 500;
