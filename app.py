@@ -30,9 +30,9 @@ st.markdown("""
         color: #0f172a;
     }
 
-    /* Main Container with cohesive width */
+    /* Main Container with cohesive width and generous top clearance */
     .block-container {
-        padding-top: 1.75rem;
+        padding-top: 2.2rem;
         padding-bottom: 2.5rem;
         max-width: 1180px;
         margin: 0 auto;
@@ -43,61 +43,62 @@ st.markdown("""
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding-bottom: 1rem;
+        padding-bottom: 0.85rem;
         border-bottom: 1px solid #e2e8f0;
-        margin-bottom: 1.25rem;
+        margin-bottom: 1rem;
     }
     .app-title {
-        font-size: 1.45rem;
+        font-size: 1.4rem;
         font-weight: 700;
         letter-spacing: -0.025em;
         color: #0f172a;
         margin: 0;
+        line-height: 1.25;
     }
     .app-subtitle {
-        font-size: 0.85rem;
+        font-size: 0.82rem;
         color: #64748b;
-        margin-top: 0.2rem;
+        margin-top: 0.15rem;
     }
     .app-tag {
-        font-size: 0.72rem;
+        font-size: 0.7rem;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.06em;
         color: #0369a1;
         background: #f0f9ff;
         border: 1px solid #bae6fd;
-        padding: 5px 12px;
+        padding: 4px 10px;
         border-radius: 4px;
         font-family: 'JetBrains Mono', monospace;
     }
 
-    /* Metric Grid */
+    /* Compact Metric Grid */
     .metric-row {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: 0.85rem;
-        margin-bottom: 1.5rem;
+        gap: 0.75rem;
+        margin-bottom: 1.15rem;
     }
     .metric-item {
         background: #f8fafc;
         border: 1px solid #e2e8f0;
         border-radius: 6px;
-        padding: 0.85rem 1rem;
+        padding: 0.65rem 0.85rem;
     }
     .metric-val {
-        font-size: 1.35rem;
+        font-size: 1.25rem;
         font-weight: 600;
         color: #0f172a;
         font-family: 'JetBrains Mono', monospace;
     }
     .metric-label {
-        font-size: 0.7rem;
+        font-size: 0.68rem;
         font-weight: 600;
         color: #64748b;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        margin-top: 0.2rem;
+        margin-top: 0.15rem;
     }
 
     /* Table Specification */
@@ -108,7 +109,7 @@ st.markdown("""
         margin-top: 0.5rem;
     }
     .spec-table td {
-        padding: 0.55rem 0.25rem;
+        padding: 0.5rem 0.25rem;
         border-bottom: 1px solid #f1f5f9;
         vertical-align: top;
     }
@@ -126,11 +127,12 @@ st.markdown("""
     .stTabs [data-baseweb="tab-list"] {
         gap: 1.5rem;
         border-bottom: 1px solid #e2e8f0;
+        margin-bottom: 1rem;
     }
     .stTabs [data-baseweb="tab"] {
         padding-left: 0;
         padding-right: 0;
-        padding-bottom: 0.75rem;
+        padding-bottom: 0.65rem;
         font-size: 0.875rem;
         font-weight: 500;
         color: #64748b;
@@ -208,21 +210,28 @@ selected_model_name = 'Bloods.h5' if os.path.exists('Bloods.h5') else None
 model = load_model_by_name(selected_model_name) if selected_model_name else None
 temp = 0.55  # Calibrated high-confidence temperature
 
-# Specimen Repository Discovery
-dataset_dir = "X:/archive/bloodcells_dataset"
-sample_options = ["-- None (Upload your own) --"]
+# Specimen Repository Discovery (Prioritize LY_3945.jpg as default)
+sample_options = []
 sample_paths = {}
 
+ly_target = r"X:\archive\bloodcells_dataset\lymphocyte\LY_3945.jpg"
+if os.path.exists(ly_target):
+    label = "Lymphocyte (LY_3945.jpg - Standard Test)"
+    sample_options.append(label)
+    sample_paths[label] = ly_target
+
+dataset_dir = "X:/archive/bloodcells_dataset"
 if os.path.exists(dataset_dir):
     for cls in CLASSES:
         folder = os.path.join(dataset_dir, cls)
         if os.path.exists(folder):
             files = [f for f in os.listdir(folder) if f.lower().endswith(('.jpg', '.png', '.jpeg'))]
             if files:
-                chosen = files[1] if len(files) > 1 else files[0]
+                chosen = files[0]
                 label = f"{cls.capitalize()} ({chosen})"
-                sample_options.append(label)
-                sample_paths[label] = os.path.join(folder, chosen)
+                if label not in sample_paths:
+                    sample_options.append(label)
+                    sample_paths[label] = os.path.join(folder, chosen)
 
 # Header Bar
 st.markdown("""
@@ -235,7 +244,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Performance Indicators (Colab Benchmark)
+# Compact Performance Indicators (Colab Benchmark)
 st.markdown("""
 <div class="metric-row">
     <div class="metric-item">
@@ -267,38 +276,23 @@ tab_live, tab_history, tab_metrics, tab_dataset = st.tabs([
 
 # TAB 1: Live Cell Classifier
 with tab_live:
-    # 1. Specimen Input Controls Bar
-    col_input1, col_input2 = st.columns([1.2, 1], gap="medium")
+    # Compact Input Controls Row (File Uploader, Sample Selectbox, Inspection Protocol)
+    col_input1, col_input2, col_input3 = st.columns([1.2, 1.1, 1.1], gap="medium")
+    
     with col_input1:
         uploaded_file = st.file_uploader(
-            "Upload microscopic field image (.jpg, .png, .jpeg)",
+            "Upload microscopic smear image (.jpg, .png):",
             type=["jpg", "jpeg", "png"],
             help="High-resolution peripheral blood smear image (100x oil immersion objective)"
         )
     with col_input2:
-        if len(sample_options) > 1:
-            selected_sample = st.selectbox(
-                "Or select reference specimen from archive:",
-                sample_options,
-                index=0
-            )
-        else:
-            selected_sample = "-- None (Upload your own) --"
-
-    image_to_process = None
-    image_source_name = ""
-
-    if uploaded_file is not None:
-        image_to_process = Image.open(uploaded_file).convert("RGB")
-        image_source_name = uploaded_file.name
-    elif selected_sample != "-- None (Upload your own) --":
-        path = sample_paths[selected_sample]
-        image_to_process = Image.open(path).convert("RGB")
-        image_source_name = os.path.basename(path)
-
-    if image_to_process is not None:
-        # Scanning mode protocol selector
-        roi_mode = st.radio(
+        selected_sample = st.selectbox(
+            "Or select reference specimen:",
+            sample_options,
+            index=0 if sample_options else None
+        )
+    with col_input3:
+        roi_mode = st.selectbox(
             "Inspection Protocol:",
             [
                 "Autonomous Multi-View Isolation (Recommended)",
@@ -308,11 +302,23 @@ with tab_live:
                 "Axial Focus (Center Sector)"
             ],
             index=0,
-            horizontal=True,
-            help="Autonomous Multi-View Isolation automatically evaluates multi-cell fields and isolates the diagnostic leukocyte."
+            help="Autonomous Multi-View Isolation evaluates multi-cell fields and isolates the diagnostic leukocyte."
         )
 
+    image_to_process = None
+    image_source_name = ""
+
+    if uploaded_file is not None:
+        image_to_process = Image.open(uploaded_file).convert("RGB")
+        image_source_name = uploaded_file.name
+    elif selected_sample and selected_sample in sample_paths:
+        path = sample_paths[selected_sample]
+        image_to_process = Image.open(path).convert("RGB")
+        image_source_name = os.path.basename(path)
+
+    if image_to_process is not None:
         w_orig, h_orig = image_to_process.size
+        
         if roi_mode == "Primary Focus (Left Sector)":
             box = (0, int(h_orig * 0.08), int(w_orig * 0.58), int(h_orig * 0.95))
             active_cell_img = image_to_process.crop(box)
@@ -372,24 +378,25 @@ with tab_live:
                 top_class = CLASSES[top_idx]
                 top_confidence = float(preds[top_idx]) * 100
 
-        # SIDE-BY-SIDE: Image of cell on left, Diagnostic Classification on right
-        st.markdown("<div style='margin-top: 0.75rem;'></div>", unsafe_allow_html=True)
-        col_cell_img, col_diag_result = st.columns([1, 1.25], gap="medium")
+        # SIDE-BY-SIDE: Crisp Original-Sized Image (Left) & Diagnostic Classification (Right)
+        st.markdown("<div style='margin-top: 0.5rem;'></div>", unsafe_allow_html=True)
+        col_cell_img, col_diag_result = st.columns([1, 1.45], gap="large")
 
         with col_cell_img:
             st.markdown("#### Analyzed Specimen")
-            st.image(active_cell_img, caption=f"Specimen: {image_source_name}", use_container_width=True)
+            # Render at crisp original/natural proportional size (not blown up)
+            st.image(active_cell_img, caption=f"Specimen: {image_source_name} ({w_orig}x{h_orig})", width=280)
 
         with col_diag_result:
             st.markdown("#### Diagnostic Classification")
             badge_color = "#16a34a" if top_confidence >= 80.0 else ("#d97706" if top_confidence >= 50.0 else "#dc2626")
             
             st.markdown(f"""
-            <div style="background-color: {badge_color}; color: #ffffff; padding: 18px 24px; border-radius: 8px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
-                <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; opacity: 0.95;">Morphological Classification</div>
-                <div style="font-size: 2.15rem; font-weight: 700; letter-spacing: -0.02em; margin: 4px 0;">{top_class.upper()}</div>
-                <div style="font-size: 1.15rem; font-weight: 600;">Confidence: {top_confidence:.2f}%</div>
-                <div style="font-size: 0.8rem; opacity: 0.9; margin-top: 8px; font-family: 'JetBrains Mono', monospace;">Protocol: {detected_auto_mode} &bull; Model: {selected_model_name}</div>
+            <div style="background-color: {badge_color}; color: #ffffff; padding: 15px 22px; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; opacity: 0.95;">Morphological Classification</div>
+                <div style="font-size: 1.95rem; font-weight: 700; letter-spacing: -0.02em; margin: 2px 0;">{top_class.upper()}</div>
+                <div style="font-size: 1.1rem; font-weight: 600;">Confidence: {top_confidence:.2f}%</div>
+                <div style="font-size: 0.76rem; opacity: 0.9; margin-top: 6px; font-family: 'JetBrains Mono', monospace;">Protocol: {detected_auto_mode} &bull; Model: {selected_model_name}</div>
             </div>
             """, unsafe_allow_html=True)
             
@@ -413,8 +420,8 @@ with tab_live:
                 cliponaxis=False
             )
             fig.update_layout(
-                height=230,
-                margin=dict(l=0, r=30, t=25, b=10),
+                height=210,
+                margin=dict(l=0, r=30, t=20, b=5),
                 xaxis=dict(
                     title="Posterior Probability (%)",
                     title_font=dict(size=11, color='#64748b'),
