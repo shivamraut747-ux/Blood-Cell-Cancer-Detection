@@ -223,7 +223,7 @@ with tab_live:
                 st.error("Model weights file (`Bloods.h5`) is required to run inference.")
             else:
                 with st.spinner("Analyzing cell morphology & nuclear chromatin..."):
-                    img_resized = image_to_process.resize((224, 224))
+                    img_resized = image_to_process.resize((224, 224), Image.BILINEAR)
                     img_array = tf.keras.utils.img_to_array(img_resized)
                     img_batch = np.expand_dims(img_array, axis=0)
                     
