@@ -30,11 +30,12 @@ st.markdown("""
         color: #0f172a;
     }
 
-    /* Main Container Padding */
+    /* Main Container with cohesive width */
     .block-container {
         padding-top: 1.75rem;
         padding-bottom: 2.5rem;
-        max-width: 1350px;
+        max-width: 1180px;
+        margin: 0 auto;
     }
 
     /* Header Bar */
@@ -44,7 +45,7 @@ st.markdown("""
         justify-content: space-between;
         padding-bottom: 1rem;
         border-bottom: 1px solid #e2e8f0;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1.25rem;
     }
     .app-title {
         font-size: 1.45rem;
@@ -82,7 +83,7 @@ st.markdown("""
         background: #f8fafc;
         border: 1px solid #e2e8f0;
         border-radius: 6px;
-        padding: 0.9rem 1.1rem;
+        padding: 0.85rem 1rem;
     }
     .metric-val {
         font-size: 1.35rem;
@@ -266,180 +267,175 @@ tab_live, tab_history, tab_metrics, tab_dataset = st.tabs([
 
 # TAB 1: Live Cell Classifier
 with tab_live:
-    col_left, col_right = st.columns([1.1, 1.3], gap="large")
-
-    image_to_process = None
-    image_source_name = ""
-
-    with col_left:
-        st.markdown("#### Specimen Input")
+    # 1. Specimen Input Controls Bar
+    col_input1, col_input2 = st.columns([1.2, 1], gap="medium")
+    with col_input1:
         uploaded_file = st.file_uploader(
             "Upload microscopic field image (.jpg, .png, .jpeg)",
             type=["jpg", "jpeg", "png"],
             help="High-resolution peripheral blood smear image (100x oil immersion objective)"
         )
-        
+    with col_input2:
         if len(sample_options) > 1:
             selected_sample = st.selectbox(
-                "Or select a reference specimen from archive:",
+                "Or select reference specimen from archive:",
                 sample_options,
                 index=0
             )
         else:
             selected_sample = "-- None (Upload your own) --"
 
-        if uploaded_file is not None:
-            image_to_process = Image.open(uploaded_file).convert("RGB")
-            image_source_name = uploaded_file.name
-        elif selected_sample != "-- None (Upload your own) --":
-            path = sample_paths[selected_sample]
-            image_to_process = Image.open(path).convert("RGB")
-            image_source_name = os.path.basename(path)
-            st.caption(f"Active Specimen: `{image_source_name}`")
-            
-        if image_to_process is not None:
-            st.markdown("##### Morphological Scanning Protocol")
-            roi_mode = st.radio(
-                "Inspection Mode",
-                [
-                    "Autonomous Multi-View Isolation (Recommended)",
-                    "Full Smear Field",
-                    "Primary Focus (Left Sector)",
-                    "Secondary Focus (Right Sector)",
-                    "Axial Focus (Center Sector)"
-                ],
-                index=0,
-                horizontal=False,
-                help="Autonomous Multi-View Isolation automatically evaluates multi-cell fields and isolates the diagnostic leukocyte."
-            )
-            
-            w_orig, h_orig = image_to_process.size
-            if roi_mode == "Primary Focus (Left Sector)":
-                box = (0, int(h_orig * 0.08), int(w_orig * 0.58), int(h_orig * 0.95))
-                active_cell_img = image_to_process.crop(box)
-                st.caption("Active Sector: Primary Left Focus")
-            elif roi_mode == "Secondary Focus (Right Sector)":
-                box = (int(w_orig * 0.35), int(h_orig * 0.08), w_orig, int(h_orig * 0.95))
-                active_cell_img = image_to_process.crop(box)
-                st.caption("Active Sector: Secondary Right Focus")
-            elif roi_mode == "Axial Focus (Center Sector)":
-                box = (int(w_orig * 0.15), int(h_orig * 0.15), int(w_orig * 0.85), int(h_orig * 0.85))
-                active_cell_img = image_to_process.crop(box)
-                st.caption("Active Sector: Axial Center Focus")
-            else:
-                active_cell_img = image_to_process
+    image_to_process = None
+    image_source_name = ""
 
-            st.image(active_cell_img, caption=f"Specimen: {image_source_name}", use_container_width=True)
+    if uploaded_file is not None:
+        image_to_process = Image.open(uploaded_file).convert("RGB")
+        image_source_name = uploaded_file.name
+    elif selected_sample != "-- None (Upload your own) --":
+        path = sample_paths[selected_sample]
+        image_to_process = Image.open(path).convert("RGB")
+        image_source_name = os.path.basename(path)
+
+    if image_to_process is not None:
+        # Scanning mode protocol selector
+        roi_mode = st.radio(
+            "Inspection Protocol:",
+            [
+                "Autonomous Multi-View Isolation (Recommended)",
+                "Full Smear Field",
+                "Primary Focus (Left Sector)",
+                "Secondary Focus (Right Sector)",
+                "Axial Focus (Center Sector)"
+            ],
+            index=0,
+            horizontal=True,
+            help="Autonomous Multi-View Isolation automatically evaluates multi-cell fields and isolates the diagnostic leukocyte."
+        )
+
+        w_orig, h_orig = image_to_process.size
+        if roi_mode == "Primary Focus (Left Sector)":
+            box = (0, int(h_orig * 0.08), int(w_orig * 0.58), int(h_orig * 0.95))
+            active_cell_img = image_to_process.crop(box)
+        elif roi_mode == "Secondary Focus (Right Sector)":
+            box = (int(w_orig * 0.35), int(h_orig * 0.08), w_orig, int(h_orig * 0.95))
+            active_cell_img = image_to_process.crop(box)
+        elif roi_mode == "Axial Focus (Center Sector)":
+            box = (int(w_orig * 0.15), int(h_orig * 0.15), int(w_orig * 0.85), int(h_orig * 0.85))
+            active_cell_img = image_to_process.crop(box)
         else:
-            st.caption("Upload a smear image or select from the specimen archive to begin analysis.")
+            active_cell_img = image_to_process
 
-    with col_right:
-        st.markdown("#### Diagnostic Classification")
-        
-        if image_to_process is not None:
-            if model is None:
-                st.error("Inference weights (Bloods.h5) unavailable.")
-            else:
-                with st.spinner("Processing morphology & cellular architecture..."):
-                    w_orig, h_orig = image_to_process.size
+        # Run Model Inference
+        if model is None:
+            st.error("Inference weights (Bloods.h5) unavailable.")
+        else:
+            with st.spinner("Processing morphology & cellular architecture..."):
+                if roi_mode == "Autonomous Multi-View Isolation (Recommended)":
+                    scan_candidates = [
+                        ("Full Field", image_to_process),
+                        ("Primary Left Focus", image_to_process.crop((0, int(h_orig * 0.08), int(w_orig * 0.58), int(h_orig * 0.95)))),
+                        ("Secondary Right Focus", image_to_process.crop((int(w_orig * 0.35), int(h_orig * 0.08), w_orig, int(h_orig * 0.95)))),
+                        ("Axial Center Focus", image_to_process.crop((int(w_orig * 0.15), int(h_orig * 0.15), int(w_orig * 0.85), int(h_orig * 0.85)))),
+                    ]
+                    scan_batch = []
+                    for _, sc_img in scan_candidates:
+                        resized_sc = sc_img.resize((224, 224), Image.Resampling.BICUBIC)
+                        scan_batch.append(np.array(resized_sc, dtype=np.float32))
+                    scan_preds = model.predict(np.array(scan_batch), verbose=0)
                     
-                    if roi_mode == "Autonomous Multi-View Isolation (Recommended)":
-                        scan_candidates = [
-                            ("Full Field", image_to_process),
-                            ("Primary Left Focus", image_to_process.crop((0, int(h_orig * 0.08), int(w_orig * 0.58), int(h_orig * 0.95)))),
-                            ("Secondary Right Focus", image_to_process.crop((int(w_orig * 0.35), int(h_orig * 0.08), w_orig, int(h_orig * 0.95)))),
-                            ("Axial Center Focus", image_to_process.crop((int(w_orig * 0.15), int(h_orig * 0.15), int(w_orig * 0.85), int(h_orig * 0.85)))),
-                        ]
-                        scan_batch = []
-                        for _, sc_img in scan_candidates:
-                            resized_sc = sc_img.resize((224, 224), Image.Resampling.BICUBIC)
-                            scan_batch.append(np.array(resized_sc, dtype=np.float32))
-                        scan_preds = model.predict(np.array(scan_batch), verbose=0)
-                        
-                        p_full = scan_preds[0]
-                        conf_full = np.max(p_full) * 100
-                        
-                        if conf_full >= 80.0:
-                            best_scan_idx = 0
-                        else:
-                            best_scan_idx = int(np.argmax([np.max(p) for p in scan_preds]))
-                            
-                        best_scan_name, active_cell_img = scan_candidates[best_scan_idx]
-                        raw_preds = scan_preds[best_scan_idx]
-                        detected_auto_mode = best_scan_name
+                    p_full = scan_preds[0]
+                    conf_full = np.max(p_full) * 100
+                    
+                    if conf_full >= 80.0:
+                        best_scan_idx = 0
                     else:
-                        resized_img = active_cell_img.resize((224, 224), Image.Resampling.BICUBIC)
-                        img_array = np.array(resized_img, dtype=np.float32)
-                        img_batch = np.expand_dims(img_array, axis=0)
-                        raw_preds = model.predict(img_batch, verbose=0)[0]
-                        detected_auto_mode = roi_mode
-                    
-                    if temp != 1.0:
-                        logits = np.log(raw_preds + 1e-7) / temp
-                        exp_logits = np.exp(logits - np.max(logits))
-                        preds = exp_logits / np.sum(exp_logits)
-                    else:
-                        preds = raw_preds
+                        best_scan_idx = int(np.argmax([np.max(p) for p in scan_preds]))
                         
-                    top_idx = int(np.argmax(preds))
-                    top_class = CLASSES[top_idx]
-                    top_confidence = float(preds[top_idx]) * 100
+                    best_scan_name, active_cell_img = scan_candidates[best_scan_idx]
+                    raw_preds = scan_preds[best_scan_idx]
+                    detected_auto_mode = best_scan_name
+                else:
+                    resized_img = active_cell_img.resize((224, 224), Image.Resampling.BICUBIC)
+                    img_array = np.array(resized_img, dtype=np.float32)
+                    img_batch = np.expand_dims(img_array, axis=0)
+                    raw_preds = model.predict(img_batch, verbose=0)[0]
+                    detected_auto_mode = roi_mode
+                
+                if temp != 1.0:
+                    logits = np.log(raw_preds + 1e-7) / temp
+                    exp_logits = np.exp(logits - np.max(logits))
+                    preds = exp_logits / np.sum(exp_logits)
+                else:
+                    preds = raw_preds
                     
-                    # Green banner when accurate (>=80%), amber for moderate, red for low
-                    badge_color = "#16a34a" if top_confidence >= 80.0 else ("#d97706" if top_confidence >= 50.0 else "#dc2626")
-                    
-                    st.markdown(f"""
-                    <div style="background-color: {badge_color}; color: #ffffff; padding: 18px 24px; border-radius: 8px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
-                        <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; opacity: 0.95;">Morphological Classification</div>
-                        <div style="font-size: 2.15rem; font-weight: 700; letter-spacing: -0.02em; margin: 4px 0;">{top_class.upper()}</div>
-                        <div style="font-size: 1.15rem; font-weight: 600;">Confidence: {top_confidence:.2f}%</div>
-                        <div style="font-size: 0.8rem; opacity: 0.9; margin-top: 8px; font-family: 'JetBrains Mono', monospace;">Protocol: {detected_auto_mode} &bull; Model: {selected_model_name}</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    prob_df = pd.DataFrame({
-                        'Lineage': [c.capitalize() for c in CLASSES],
-                        'Posterior (%)': [float(p * 100) for p in preds]
-                    }).sort_values('Posterior (%)', ascending=True)
-                    
-                    fig = px.bar(
-                        prob_df,
-                        x='Posterior (%)',
-                        y='Lineage',
-                        orientation='h',
-                        text=prob_df['Posterior (%)'].apply(lambda x: f"{x:.2f}%"),
-                        range_x=[0, 100]
-                    )
-                    fig.update_traces(
-                        marker_color='#2563eb',
-                        textposition='outside',
-                        textfont=dict(size=11, family='JetBrains Mono, monospace', color='#0f172a'),
-                        cliponaxis=False
-                    )
-                    fig.update_layout(
-                        height=250,
-                        margin=dict(l=0, r=30, t=25, b=10),
-                        xaxis=dict(
-                            title="Posterior Probability (%)",
-                            title_font=dict(size=11, color='#64748b'),
-                            tickfont=dict(size=10, color='#64748b'),
-                            gridcolor='#f1f5f9',
-                            zeroline=False
-                        ),
-                        yaxis=dict(
-                            title=None,
-                            tickfont=dict(size=11, color='#0f172a')
-                        ),
-                        plot_bgcolor='rgba(0,0,0,0)',
-                        paper_bgcolor='rgba(0,0,0,0)',
-                        title=dict(
-                            text="Probability Distribution",
-                            font=dict(size=12, color='#64748b', family='Inter, sans-serif')
-                        )
-                    )
-                    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+                top_idx = int(np.argmax(preds))
+                top_class = CLASSES[top_idx]
+                top_confidence = float(preds[top_idx]) * 100
 
-    if image_to_process is not None and model is not None:
+        # SIDE-BY-SIDE: Image of cell on left, Diagnostic Classification on right
+        st.markdown("<div style='margin-top: 0.75rem;'></div>", unsafe_allow_html=True)
+        col_cell_img, col_diag_result = st.columns([1, 1.25], gap="medium")
+
+        with col_cell_img:
+            st.markdown("#### Analyzed Specimen")
+            st.image(active_cell_img, caption=f"Specimen: {image_source_name}", use_container_width=True)
+
+        with col_diag_result:
+            st.markdown("#### Diagnostic Classification")
+            badge_color = "#16a34a" if top_confidence >= 80.0 else ("#d97706" if top_confidence >= 50.0 else "#dc2626")
+            
+            st.markdown(f"""
+            <div style="background-color: {badge_color}; color: #ffffff; padding: 18px 24px; border-radius: 8px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; opacity: 0.95;">Morphological Classification</div>
+                <div style="font-size: 2.15rem; font-weight: 700; letter-spacing: -0.02em; margin: 4px 0;">{top_class.upper()}</div>
+                <div style="font-size: 1.15rem; font-weight: 600;">Confidence: {top_confidence:.2f}%</div>
+                <div style="font-size: 0.8rem; opacity: 0.9; margin-top: 8px; font-family: 'JetBrains Mono', monospace;">Protocol: {detected_auto_mode} &bull; Model: {selected_model_name}</div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            prob_df = pd.DataFrame({
+                'Lineage': [c.capitalize() for c in CLASSES],
+                'Posterior (%)': [float(p * 100) for p in preds]
+            }).sort_values('Posterior (%)', ascending=True)
+            
+            fig = px.bar(
+                prob_df,
+                x='Posterior (%)',
+                y='Lineage',
+                orientation='h',
+                text=prob_df['Posterior (%)'].apply(lambda x: f"{x:.2f}%"),
+                range_x=[0, 100]
+            )
+            fig.update_traces(
+                marker_color='#2563eb',
+                textposition='outside',
+                textfont=dict(size=11, family='JetBrains Mono, monospace', color='#0f172a'),
+                cliponaxis=False
+            )
+            fig.update_layout(
+                height=230,
+                margin=dict(l=0, r=30, t=25, b=10),
+                xaxis=dict(
+                    title="Posterior Probability (%)",
+                    title_font=dict(size=11, color='#64748b'),
+                    tickfont=dict(size=10, color='#64748b'),
+                    gridcolor='#f1f5f9',
+                    zeroline=False
+                ),
+                yaxis=dict(
+                    title=None,
+                    tickfont=dict(size=11, color='#0f172a')
+                ),
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)',
+                title=dict(
+                    text="Probability Distribution",
+                    font=dict(size=12, color='#64748b', family='Inter, sans-serif')
+                )
+            )
+            st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+
+        # Cytological Reference Table below the side-by-side view
         st.markdown("---")
         st.markdown(f"#### Cytological Reference: {top_class.capitalize()}")
         info = CLINICAL_INFO.get(top_class, {})
@@ -453,6 +449,8 @@ with tab_live:
             <tr><td class="label-cell">Pathology Association</td><td class="val-cell">{info.get('clinical_relevance', 'N/A')}</td></tr>
         </table>
         """, unsafe_allow_html=True)
+    else:
+        st.info("Upload a smear image or select from the specimen archive to view cellular morphology and diagnostic classification.")
 
 # TAB 2: Training History Curves
 with tab_history:
