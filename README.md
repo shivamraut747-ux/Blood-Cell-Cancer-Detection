@@ -1,15 +1,11 @@
-## 📸 Screenshots
-
-**Live Classification Demo**
-![Demo 1](assets/demo1.png)
-![Demo 2](assets/demo2.png)
-![Demo 3](assets/demo3.png)
-
 # 🩸 Blood Cell Classifier
 
 An end-to-end Computer Vision & Deep Learning system for automated white blood cell classification from peripheral blood smears — built to assist hematopathologists in cytology differential workflows.
 
 Blood cancers such as Acute Lymphoblastic Leukemia (ALL), Chronic Lymphocytic Leukemia (CLL), CML, and AML are diagnosed by identifying abnormal leukocyte lineages and immature precursor cells under high-magnification microscopy. This project automates that cell-identification workflow using a fine-tuned EfficientNetB3 model and an interactive clinical web app — flagging cell-type patterns associated with these conditions to support (not replace) pathologist review.
+
+**Live Classification Demo**
+![Demo 1](assets/demo1.png)
 
 ## 🧬 Target Classes & Clinical Relevance
 
