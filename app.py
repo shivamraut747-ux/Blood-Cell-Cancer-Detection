@@ -12,13 +12,18 @@ import tensorflow as tf
 st.set_page_config(
     page_title="HemaVision - Peripheral Blood Smear Analysis",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 # Professional Clinical Dashboard Typography & Minimalist Styling
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    /* Completely hide Streamlit sidebar */
+    [data-testid="stSidebar"], section[data-testid="stSidebar"] {
+        display: none !important;
+    }
 
     html, body, [class*="css"], .stMarkdown {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -27,9 +32,9 @@ st.markdown("""
 
     /* Main Container Padding */
     .block-container {
-        padding-top: 2rem;
+        padding-top: 1.75rem;
         padding-bottom: 2.5rem;
-        max-width: 1300px;
+        max-width: 1350px;
     }
 
     /* Header Bar */
@@ -42,7 +47,7 @@ st.markdown("""
         margin-bottom: 1.5rem;
     }
     .app-title {
-        font-size: 1.4rem;
+        font-size: 1.45rem;
         font-weight: 700;
         letter-spacing: -0.025em;
         color: #0f172a;
@@ -94,56 +99,6 @@ st.markdown("""
         margin-top: 0.2rem;
     }
 
-    /* Section Card */
-    .section-card {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 6px;
-        padding: 1.25rem;
-        margin-bottom: 1rem;
-    }
-
-    /* Result Card */
-    .prediction-card {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 6px;
-        padding: 1.25rem 1.4rem;
-        margin-bottom: 1.25rem;
-    }
-    .pred-header {
-        font-size: 0.72rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: #64748b;
-        margin-bottom: 0.25rem;
-    }
-    .pred-lineage {
-        font-size: 1.65rem;
-        font-weight: 700;
-        letter-spacing: -0.025em;
-        color: #0f172a;
-    }
-    .pred-confidence {
-        display: inline-flex;
-        align-items: center;
-        margin-top: 0.45rem;
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: #047857;
-        background: #ecfdf5;
-        border: 1px solid #a7f3d0;
-        padding: 4px 10px;
-        border-radius: 4px;
-        font-family: 'JetBrains Mono', monospace;
-    }
-    .pred-pipeline {
-        font-size: 0.75rem;
-        color: #64748b;
-        margin-top: 0.65rem;
-    }
-
     /* Table Specification */
     .spec-table {
         width: 100%;
@@ -157,7 +112,7 @@ st.markdown("""
         vertical-align: top;
     }
     .spec-table .label-cell {
-        width: 28%;
+        width: 25%;
         color: #64748b;
         font-weight: 500;
     }
@@ -166,10 +121,7 @@ st.markdown("""
         font-weight: 500;
     }
 
-    /* Clean Streamlit Element Overrides */
-    div[data-testid="stSidebarHeader"] {
-        padding-top: 1rem;
-    }
+    /* Clean Streamlit Tab Overrides */
     .stTabs [data-baseweb="tab-list"] {
         gap: 1.5rem;
         border-bottom: 1px solid #e2e8f0;
@@ -186,9 +138,6 @@ st.markdown("""
         color: #0f172a !important;
         font-weight: 600 !important;
         border-bottom: 2px solid #0f172a !important;
-    }
-    .stFileUploader {
-        border-radius: 6px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -254,10 +203,27 @@ def load_model_by_name(model_name):
     except Exception as e:
         return None
 
-available_models = ['Bloods.h5'] if os.path.exists('Bloods.h5') else []
-default_model = 'Bloods.h5' if available_models else None
+selected_model_name = 'Bloods.h5' if os.path.exists('Bloods.h5') else None
+model = load_model_by_name(selected_model_name) if selected_model_name else None
+temp = 0.55  # Calibrated high-confidence temperature
 
-# Clinical Application Header
+# Specimen Repository Discovery
+dataset_dir = "X:/archive/bloodcells_dataset"
+sample_options = ["-- None (Upload your own) --"]
+sample_paths = {}
+
+if os.path.exists(dataset_dir):
+    for cls in CLASSES:
+        folder = os.path.join(dataset_dir, cls)
+        if os.path.exists(folder):
+            files = [f for f in os.listdir(folder) if f.lower().endswith(('.jpg', '.png', '.jpeg'))]
+            if files:
+                chosen = files[1] if len(files) > 1 else files[0]
+                label = f"{cls.capitalize()} ({chosen})"
+                sample_options.append(label)
+                sample_paths[label] = os.path.join(folder, chosen)
+
+# Header Bar
 st.markdown("""
 <div class="app-header">
     <div>
@@ -268,7 +234,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Performance Indicators (Colab Validation Benchmark)
+# Performance Indicators (Colab Benchmark)
 st.markdown("""
 <div class="metric-row">
     <div class="metric-item">
@@ -289,59 +255,6 @@ st.markdown("""
     </div>
 </div>
 """, unsafe_allow_html=True)
-
-# Sidebar Configuration
-with st.sidebar:
-    st.markdown("#### System Configuration")
-    if available_models:
-        selected_model_name = st.selectbox(
-            "Active Architecture",
-            available_models,
-            index=available_models.index(default_model) if default_model in available_models else 0,
-            help="Pretrained EfficientNetB3 deep feature extractor checkpoint."
-        )
-        model = load_model_by_name(selected_model_name)
-        st.caption(f"Loaded: `{selected_model_name}` &bull; EfficientNetB3")
-    else:
-        st.error("Weights checkpoint (Bloods.h5) not found.")
-        model = None
-        selected_model_name = None
-
-    st.markdown("---")
-    st.markdown("#### Specimen Reference Gallery")
-    st.caption("Select a validated microscopic field from the test repository:")
-    
-    dataset_dir = r"X:rchiveloodcells_dataset"
-    sample_options = ["-- None (Upload your own) --"]
-    sample_paths = {}
-    
-    if os.path.exists(dataset_dir):
-        for cls in CLASSES:
-            folder = os.path.join(dataset_dir, cls)
-            if os.path.exists(folder):
-                files = [f for f in os.listdir(folder) if f.lower().endswith(('.jpg', '.png', '.jpeg'))]
-                if files:
-                    chosen = files[1] if len(files) > 1 else files[0]
-                    label = f"{cls.capitalize()} ({chosen})"
-                    sample_options.append(label)
-                    sample_paths[label] = os.path.join(folder, chosen)
-    
-    selected_sample = st.selectbox("Sample Specimen", sample_options)
-    
-    st.markdown("---")
-    st.markdown("#### Calibration Protocol")
-    sharpness_mode = st.radio(
-        "Posterior Distribution",
-        ["High Confidence (Calibrated T=0.55)", "Standard Softmax (T=1.0)"],
-        index=0,
-        help="Calibrated temperature scaling aligns focal cell logit sharpness with benchmark Colab single-cell evaluation."
-    )
-    temp = 0.55 if "T=0.55" in sharpness_mode else 1.0
-
-    st.markdown("---")
-    st.markdown("#### Target Lineages")
-    for cls in CLASSES:
-        st.markdown(f"- {cls.capitalize()}")
 
 # Main Navigation Tabs
 tab_live, tab_history, tab_metrics, tab_dataset = st.tabs([
@@ -366,6 +279,15 @@ with tab_live:
             help="High-resolution peripheral blood smear image (100x oil immersion objective)"
         )
         
+        if len(sample_options) > 1:
+            selected_sample = st.selectbox(
+                "Or select a reference specimen from archive:",
+                sample_options,
+                index=0
+            )
+        else:
+            selected_sample = "-- None (Upload your own) --"
+
         if uploaded_file is not None:
             image_to_process = Image.open(uploaded_file).convert("RGB")
             image_source_name = uploaded_file.name
@@ -409,7 +331,7 @@ with tab_live:
 
             st.image(active_cell_img, caption=f"Specimen: {image_source_name}", use_container_width=True)
         else:
-            st.caption("Upload a smear image or select from the specimen gallery in the sidebar to begin.")
+            st.caption("Upload a smear image or select from the specimen archive to begin analysis.")
 
     with col_right:
         st.markdown("#### Diagnostic Classification")
@@ -463,13 +385,15 @@ with tab_live:
                     top_class = CLASSES[top_idx]
                     top_confidence = float(preds[top_idx]) * 100
                     
-                    # Minimal Clinical Prediction Card
+                    # Green banner when accurate (>=80%), amber for moderate, red for low
+                    badge_color = "#16a34a" if top_confidence >= 80.0 else ("#d97706" if top_confidence >= 50.0 else "#dc2626")
+                    
                     st.markdown(f"""
-                    <div class="prediction-card">
-                        <div class="pred-header">Morphological Classification</div>
-                        <div class="pred-lineage">{top_class.upper()}</div>
-                        <div class="pred-confidence">{top_confidence:.2f}% Match</div>
-                        <div class="pred-pipeline">Resolved via: {detected_auto_mode} &bull; Architecture: {selected_model_name}</div>
+                    <div style="background-color: {badge_color}; color: #ffffff; padding: 18px 24px; border-radius: 8px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                        <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; opacity: 0.95;">Morphological Classification</div>
+                        <div style="font-size: 2.15rem; font-weight: 700; letter-spacing: -0.02em; margin: 4px 0;">{top_class.upper()}</div>
+                        <div style="font-size: 1.15rem; font-weight: 600;">Confidence: {top_confidence:.2f}%</div>
+                        <div style="font-size: 0.8rem; opacity: 0.9; margin-top: 8px; font-family: 'JetBrains Mono', monospace;">Protocol: {detected_auto_mode} &bull; Model: {selected_model_name}</div>
                     </div>
                     """, unsafe_allow_html=True)
                     
@@ -595,8 +519,8 @@ with tab_dataset:
     st.markdown("""
     ##### Cohort Parameters
     - **Total Specimen Count:** 17,092 high-resolution microscopic blood smear images.
-    - **Input Dimensions:** Standardized to $224 \times 224$ pixels, 3 channels (RGB).
-    - **Staining Technique:** Romanowsky / Giemsa-Wright staining under $100\times$ oil immersion magnification.
+    - **Input Dimensions:** Standardized to $224 \\times 224$ pixels, 3 channels (RGB).
+    - **Staining Technique:** Romanowsky / Giemsa-Wright staining under $100\\times$ oil immersion magnification.
     """)
 
 # Institutional Footer
