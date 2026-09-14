@@ -58,6 +58,18 @@ st.markdown("""
         margin: 0;
         line-height: 1.2;
         text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    .home-icon {
+        width: 1.35rem;
+        height: 1.35rem;
+        stroke: #2563eb;
+        stroke-width: 2.2;
+        vertical-align: middle;
+        flex-shrink: 0;
     }
     .app-subtitle {
         font-size: 0.92rem;
@@ -205,7 +217,13 @@ if os.path.exists(dataset_dir):
 # Header Bar
 st.markdown("""
 <div class="app-header">
-    <div class="app-title">HemaVision Laboratory Analyzer</div>
+    <div class="app-title">
+        <svg class="home-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+        <span>HemaVision Laboratory Analyzer</span>
+    </div>
     <div class="app-subtitle">Peripheral Blood Smear Morphology &amp; Cytological Classification System</div>
 </div>
 """, unsafe_allow_html=True)
