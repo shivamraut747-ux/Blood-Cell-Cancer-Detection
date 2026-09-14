@@ -113,8 +113,8 @@ def load_model_by_name(model_name):
     except Exception as e:
         return None
 
-available_models = [m for m in ['Bloods.h5', 'Bloods_High_Confidence.h5'] if os.path.exists(m)]
-default_model = 'Bloods.h5' if 'Bloods.h5' in available_models else (available_models[0] if available_models else None)
+available_models = ['Bloods.h5'] if os.path.exists('Bloods.h5') else []
+default_model = 'Bloods.h5' if available_models else None
 
 
 # Header
